@@ -7,7 +7,7 @@ so you don't have to click "Show more options".
 
 🇷🇺 [Читать на русском](README.ru.md)
 
-<!-- SCREENSHOT: drag your screenshot here while editing this file on GitHub -->
+<p align="center"><img src="docs/images/menu-compact.png" width="380" alt="The 7-Zip menu in the Windows 11 context menu"></p>
 
 ## Features
 - All 7-Zip items in the new menu: open, extract, test, add to archive, CRC SHA and more.
@@ -15,6 +15,30 @@ so you don't have to click "Show more options".
 - 7-Zip settings still work: *7-Zip File Manager → Tools → Options → 7-Zip* (hide items, cascade on/off, icons).
 - Works for files and folders, including multiple selection.
 - Nothing from 7-Zip is bundled or modified. Open source, MIT license, built publicly by GitHub Actions.
+
+## Screenshots
+The menu always mirrors your 7-Zip options (screenshots use the Russian Windows UI).
+
+<table>
+  <tr>
+    <th>7-Zip options</th>
+    <th>Result in the new Windows 11 menu</th>
+  </tr>
+  <tr>
+    <td><img src="docs/images/settings-all.png" width="300" alt="All 7-Zip menu items enabled"></td>
+    <td><img src="docs/images/menu-full.png" width="360" alt="Full menu"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/settings-minimal.png" width="300" alt="Only the main items enabled"></td>
+    <td><img src="docs/images/menu-compact.png" width="360" alt="Compact menu"></td>
+  </tr>
+</table>
+
+### Where the item appears
+On Windows 11 builds that have *Settings → Personalization → Context menu → App extensions*, you choose whether
+the item is shown in the main menu (toggle **On**, as below) or inside the *App extensions* submenu.
+
+<img src="docs/images/personalization.png" width="520" alt="Windows Settings: Personalization, Context menu">
 
 ## Requirements
 - Windows 11 (tested on Windows 11 Pro 26H2).
@@ -57,6 +81,9 @@ or remove the certificate after installation: `Win+R → certlm.msc → Trusted 
 The package keeps working after the certificate is removed from the store.
 
 ## Troubleshooting
+**The item is not in the main menu?** Open *Settings → Personalization → Context menu → App extensions* and turn on
+"Modern context menu for 7-Zip" (or look inside the *App extensions* submenu).
+
 Enable the log and right-click a file:
 ```
 reg add HKCU\Software\ModernMenu7z /v Debug /t REG_DWORD /d 1 /f

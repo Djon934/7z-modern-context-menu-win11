@@ -10,7 +10,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [Sem
 - Menu content, language and settings are taken from the installed 7-Zip, so they always match the classic menu.
 - Nested 7-Zip submenus (for example "CRC SHA") are shown as flat items with a group prefix, because Windows 11 does not support nested submenus in the new menu.
 - Installer and uninstaller scripts, SHA-256 checksums, optional debug log.
-- Own project icon (embedded in the files and used for the package) and file version information.
+- Own project icon (embedded in the files and used for the package, also shown in Windows Settings) and file version information.
 
 ## [0.0.1-alpha.1] - 2026-10-24
 ### Added
