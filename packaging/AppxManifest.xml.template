@@ -7,7 +7,8 @@
   xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
   xmlns:desktop5="http://schemas.microsoft.com/appx/manifest/desktop/windows10/5"
   xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
-  IgnorableNamespaces="uap uap10 rescap desktop4 desktop5 com">
+  xmlns:com4="http://schemas.microsoft.com/appx/manifest/com/windows10/4"
+  IgnorableNamespaces="uap uap10 rescap desktop4 desktop5 com com4">
 
   <Identity Name="Community.SevenZipModernMenu"
             Publisher="{{PUBLISHER}}"
@@ -61,12 +62,12 @@
   </Applications>
 
   <Extensions>
-    <com:Extension Category="windows.comServer">
-      <com:ComServer>
-        <com:SurrogateServer DisplayName="Modern context menu for 7-Zip">
-          <com:Class Id="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" Path="SevenZipMenuExt.dll" ThreadingModel="STA" />
-        </com:SurrogateServer>
-      </com:ComServer>
-    </com:Extension>
+    <com4:Extension Category="windows.comServer">
+      <{{C}}:ComServer>
+        <{{C}}:SurrogateServer DisplayName="Modern context menu for 7-Zip">
+          <{{C}}:Class Id="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" Path="SevenZipMenuExt.dll" ThreadingModel="STA" />
+        </{{C}}:SurrogateServer>
+      </{{C}}:ComServer>
+    </com4:Extension>
   </Extensions>
 </Package>
