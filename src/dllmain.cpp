@@ -209,6 +209,40 @@ static std::vector<Item> ReadMenu(HMENU hm)
     return items;
 }
 
+// Проводник Windows 11 не поддерживает подменю внутри подменю (ограничение
+// IExplorerCommand). Поэтому вложенные группы разворачиваем в общий список:
+// пункты получают приставку с названием группы, а вокруг группы ставятся разделители.
+static void AddSeparator(std::vector<Item>& out)
+{
+    if (out.empty() || out.back().separator) return;
+    Item s;
+    s.separator = true;
+    out.push_back(std::move(s));
+}
+
+static void FlattenInto(HMENU hm, const std::wstring& prefix, std::vector<Item>& out)
+{
+    for (auto& it : ReadMenu(hm)) {
+        if (it.separator) { AddSeparator(out); continue; }
+        if (it.sub) {
+            AddSeparator(out);
+            FlattenInto(it.sub, prefix + it.title + L" \u203A ", out);
+            AddSeparator(out);
+            continue;
+        }
+        it.title = prefix + it.title;
+        out.push_back(std::move(it));
+    }
+}
+
+static std::vector<Item> FlattenMenu(HMENU hm)
+{
+    std::vector<Item> out;
+    FlattenInto(hm, L"", out);
+    while (!out.empty() && out.back().separator) out.pop_back();
+    return out;
+}
+
 static std::shared_ptr<Session> BuildSession(IShellItemArray* items)
 {
     if (!items) return nullptr;
@@ -372,7 +406,7 @@ public:
 static HRESULT MakeEnum(std::shared_ptr<Session> s, HMENU hm, IEnumExplorerCommand** ppEnum)
 {
     std::vector<IExplorerCommand*> cmds;
-    for (auto& it : ReadMenu(hm)) {
+    for (auto& it : FlattenMenu(hm)) {
         auto* c = new (std::nothrow) ItemCommand(s, std::move(it));
         if (c) cmds.push_back(c);
     }
