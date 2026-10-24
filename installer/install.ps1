@@ -28,6 +28,7 @@ try {
     New-Item -ItemType Directory -Force $dir | Out-Null
     Copy-Item (Join-Path $here 'ModernMenu7z.dll') $dir -Force
     Copy-Item (Join-Path $here 'ModernMenu7z.exe') $dir -Force
+    Copy-Item (Join-Path $here 'Assets') $dir -Recurse -Force
     if (Test-Path $legacyDir) { Remove-Item $legacyDir -Recurse -Force -ErrorAction SilentlyContinue }
 
     Write-Host '4/5 Trusting the package signing certificate...'
