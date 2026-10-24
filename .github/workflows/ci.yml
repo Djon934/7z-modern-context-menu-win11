@@ -14,7 +14,7 @@ jobs:
         shell: pwsh
         run: |
           $v = (Get-Content VERSION).Trim()
-          if ($v -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw "Неверный формат VERSION: $v" }
+          if ($v -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw "Invalid VERSION format: $v" }
           "VERSION=$v" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Build
@@ -32,9 +32,9 @@ jobs:
             Set-Content dist/SHA256SUMS.txt
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          name: 7zip-modern-menu-${{ env.VERSION }}
+          name: ModernMenu7z-${{ env.VERSION }}
           path: dist/*
           if-no-files-found: error
           retention-days: 14
