@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Check VERSION format (SemVer)
         shell: pwsh
@@ -32,7 +32,7 @@ jobs:
             Set-Content dist/SHA256SUMS.txt
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: 7zip-modern-menu-${{ env.VERSION }}
           path: dist/*
