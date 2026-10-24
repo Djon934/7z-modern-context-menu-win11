@@ -10,3 +10,12 @@
 1. Обновить `VERSION` и добавить раздел `## [X.Y.Z] - дата` в `CHANGELOG.md`.
 2. `git commit`, затем `git tag vX.Y.Z && git push --tags`.
 3. Actions соберёт файлы и опубликует Release. Версии с дефисом (`-alpha.1`, `-rc.1`) помечаются как pre-release.
+
+## Как это работает
+Расширение (`IExplorerCommand`) спрашивает у установленного 7-Zip его классическое
+контекстное меню и показывает те же пункты в новом меню Windows 11. Поэтому состав,
+порядок, подменю и язык всегда совпадают с классическим меню и настройками 7-Zip.
+
+## Отладка
+Включить журнал: `reg add HKCU\Software\SevenZipModernMenu /v Debug /t REG_DWORD /d 1 /f`
+Файл журнала: `%LOCALAPPDATA%\SevenZipModernMenu\log.txt`
