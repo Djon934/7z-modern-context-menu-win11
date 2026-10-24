@@ -12,35 +12,46 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
+
       - name: Check tag matches VERSION
         shell: pwsh
         run: |
           $ver = (Get-Content VERSION).Trim()
-          if ($env:TAG -ne "v$ver") { throw "Тег $env:TAG не совпадает с VERSION ($ver)" }
+          if ($env:TAG -ne "v$ver") { throw "Tag $env:TAG does not match VERSION ($ver)" }
           "VERSION=$ver" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
       - name: Release notes from CHANGELOG
         shell: pwsh
         run: ./scripts/extract-notes.ps1 -Version $env:VERSION
+
       - name: Build
         shell: powershell
         env:
           SIGN_PFX_BASE64: ${{ secrets.SIGN_PFX_BASE64 }}
           SIGN_PFX_PASSWORD: ${{ secrets.SIGN_PFX_PASSWORD }}
         run: ./scripts/build.ps1 -Version $env:VERSION
-      - name: SHA256 checksums
+
+      - name: Package release zip and checksums
         shell: pwsh
+        env:
+          SIGN_PFX_BASE64: ${{ secrets.SIGN_PFX_BASE64 }}
         run: |
-          Get-ChildItem dist -File | Where-Object Name -ne 'SHA256SUMS.txt' |
-            ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } |
-            Set-Content dist/SHA256SUMS.txt
+          if (-not $env:VERSION.Contains('-') -and -not $env:SIGN_PFX_BASE64) {
+            throw 'Stable release requires the permanent signing certificate (secret SIGN_PFX_BASE64).'
+          }
+          New-Item -ItemType Directory release | Out-Null
+          $zip = "release/ModernMenu7z-$env:VERSION-x64.zip"
+          Compress-Archive -Path dist/* -DestinationPath $zip
+          $h = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          "$h  $(Split-Path $zip -Leaf)" | Set-Content release/SHA256SUMS.txt
+
       - name: Publish GitHub Release
         shell: pwsh
         run: |
-          $files = (Get-ChildItem dist -File).FullName
+          $files = (Get-ChildItem release -File).FullName
           $pre = $env:VERSION.Contains('-')
           gh release view $env:TAG *> $null
           if ($LASTEXITCODE -eq 0) {
-            # Релиз уже создан через веб-интерфейс: добавляем файлы и описание
             gh release upload $env:TAG @files --clobber
             gh release edit $env:TAG --notes-file release-notes.md --prerelease=$($pre.ToString().ToLower())
           } else {
