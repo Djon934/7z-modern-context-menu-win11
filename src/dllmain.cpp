@@ -22,6 +22,11 @@
 #include <string>
 #include <vector>
 
+// В некоторых версиях SDK эта константа не объявлена (значение постоянное).
+#ifndef RRF_SUBKEY_WOW64_64KEY
+#define RRF_SUBKEY_WOW64_64KEY 0x00010000
+#endif
+
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "shell32.lib")
