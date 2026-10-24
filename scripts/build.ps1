@@ -125,6 +125,9 @@ Assert-Ok 'signtool'
 
 # --- 7. Final file set
 Copy-Item "$out\ModernMenu7z.dll", "$out\ModernMenu7z.exe" $dist
+# Package images must also sit next to the DLL: for a sparse package Windows reads them from the install folder
+New-Item -ItemType Directory -Force "$dist\Assets" | Out-Null
+Copy-Item "$root\assets\StoreLogo.png", "$root\assets\Square44x44Logo.png", "$root\assets\Square150x150Logo.png" "$dist\Assets"
 Copy-Item "$root\installer\*" $dist
 Remove-Item $pfx -Force
 Get-ChildItem $dist | Format-Table Name, Length
