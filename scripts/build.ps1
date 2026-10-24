@@ -1,4 +1,4 @@
-﻿# Сборка: DLL + заглушка + sparse-пакет MSIX + подпись. Запускать в Windows PowerShell 5.1.
+# Build: DLL + stub + sparse MSIX package + signing. Run in Windows PowerShell 5.1.
 param([Parameter(Mandatory)][string]$Version)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -9,28 +9,28 @@ $stage = Join-Path $out 'pkg'
 Remove-Item $out, $dist -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $out, $dist, $stage, "$stage\Assets" | Out-Null
 
-function Assert-Ok($what) { if ($LASTEXITCODE -ne 0) { throw "$what завершилась с кодом $LASTEXITCODE" } }
+function Assert-Ok($what) { if ($LASTEXITCODE -ne 0) { throw "$what failed with exit code $LASTEXITCODE" } }
 
-# --- 1. Окружение компилятора MSVC
+# --- 1. MSVC environment
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $vs = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-if (-not $vs) { throw 'Visual Studio с компонентами C++ не найдена' }
+if (-not $vs) { throw 'Visual Studio with C++ tools not found' }
 $vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvars64.bat'
 cmd /c "`"$vcvars`" >nul && set" | ForEach-Object {
     if ($_ -match '^(.*?)=(.*)$') { Set-Item -Path "env:$($Matches[1])" -Value $Matches[2] }
 }
 
-# --- 2. Компиляция
+# --- 2. Compile
 Push-Location $out
 try {
     & cl /nologo /std:c++17 /EHsc /O2 /MT /GS /W3 /DUNICODE /D_UNICODE /LD "$root\src\dllmain.cpp" `
         /Fe:SevenZipMenuExt.dll /link "/DEF:$root\src\exports.def" /DYNAMICBASE /NXCOMPAT /GUARD:CF
-    Assert-Ok 'Компиляция DLL'
+    Assert-Ok 'DLL compile'
     & cl /nologo /O1 /MT "$root\src\stub.cpp" /Fe:SevenZipModernMenu.exe
-    Assert-Ok 'Компиляция заглушки'
+    Assert-Ok 'Stub compile'
 } finally { Pop-Location }
 
-# --- 3. Значки пакета (простые собственные, не связаны с 7-Zip)
+# --- 3. Package icons (own simple icons, unrelated to 7-Zip)
 Add-Type -AssemblyName System.Drawing
 function New-Logo($path, $size) {
     $bmp = New-Object System.Drawing.Bitmap $size, $size
@@ -47,18 +47,18 @@ New-Logo "$stage\Assets\StoreLogo.png" 50
 New-Logo "$stage\Assets\Square44x44Logo.png" 44
 New-Logo "$stage\Assets\Square150x150Logo.png" 150
 
-# --- 4. Сертификат подписи
+# --- 4. Signing certificate
 $pfx = Join-Path $out 'sign.pfx'
 $cer = Join-Path $dist 'SevenZipModernMenu.cer'
 if ($env:SIGN_PFX_BASE64) {
-    # постоянный сертификат из секретов репозитория
+    # permanent certificate from repository secrets
     $pfxPass = $env:SIGN_PFX_PASSWORD
     [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:SIGN_PFX_BASE64))
     $c = New-Object Security.Cryptography.X509Certificates.X509Certificate2 $pfx, $pfxPass
     [IO.File]::WriteAllBytes($cer, $c.Export('Cert'))
     $publisher = $c.Subject
 } else {
-    # временный самоподписанный сертификат (для тестовых сборок)
+    # temporary self-signed certificate (test builds)
     $pfxPass = [guid]::NewGuid().ToString('N')
     $publisher = 'CN=SevenZipModernMenu'
     $c = New-SelfSignedCertificate -Type Custom -Subject $publisher -KeyUsage DigitalSignature `
@@ -69,29 +69,38 @@ if ($env:SIGN_PFX_BASE64) {
     Export-Certificate -Cert $c -FilePath $cer | Out-Null
 }
 
-# --- 5. Манифест
+# --- 5. Manifest template
 $run  = if ($env:GITHUB_RUN_NUMBER) { $env:GITHUB_RUN_NUMBER } else { '0' }
 $ver4 = ($Version -replace '-.*$', '') + '.' + $run
 $tpl  = Get-Content "$root\packaging\AppxManifest.xml.template" -Raw -Encoding UTF8
 $tpl  = $tpl.Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4)
-[IO.File]::WriteAllText("$stage\AppxManifest.xml", $tpl, (New-Object Text.UTF8Encoding $false))
 
-# --- 6. Упаковка и подпись
+# --- 6. Pack and sign
 function Find-SdkTool($name) {
     $f = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.*\x64\$name" -ErrorAction SilentlyContinue |
         Sort-Object { [version]($_.FullName -replace '^.*\\bin\\(10\.[\d.]+)\\.*$', '$1') } -Descending | Select-Object -First 1
-    if (-not $f) { throw "$name не найден в Windows SDK" }
+    if (-not $f) { throw "$name not found in Windows SDK" }
     $f.FullName
 }
 $makeappx = Find-SdkTool 'makeappx.exe'
 $signtool = Find-SdkTool 'signtool.exe'
 $msix = Join-Path $dist 'SevenZipModernMenu.msix'
-& $makeappx pack /d $stage /p $msix /nv /o
-Assert-Ok 'makeappx'
+
+# The COM server section namespace is not known for sure: try variants one by one.
+$packed = $false
+foreach ($c in 'com4', 'com') {
+    $m = $tpl.Replace('{{C}}', $c)
+    [IO.File]::WriteAllText("$stage\AppxManifest.xml", $m, (New-Object Text.UTF8Encoding $false))
+    Write-Host "=== Trying manifest variant: $c ==="
+    & $makeappx pack /d $stage /p $msix /nv /o
+    if ($LASTEXITCODE -eq 0) { Write-Host "=== Manifest variant OK: $c ==="; $packed = $true; break }
+}
+if (-not $packed) { throw 'makeappx failed with all manifest variants' }
+
 & $signtool sign /fd SHA256 /f $pfx /p $pfxPass $msix
 Assert-Ok 'signtool'
 
-# --- 7. Состав готового набора
+# --- 7. Final file set
 Copy-Item "$out\SevenZipMenuExt.dll", "$out\SevenZipModernMenu.exe" $dist
 Copy-Item "$root\installer\*" $dist
 Remove-Item $pfx -Force
