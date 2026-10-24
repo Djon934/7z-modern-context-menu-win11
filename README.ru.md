@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/icon-256.png" width="96" alt="icon"></p>
+
 # 7-Zip Modern Context Menu для Windows 11
 
 **Новое контекстное меню Windows 11 для 7-Zip.** Добавляет полное меню 7-Zip в новое меню правой кнопки мыши,
@@ -74,6 +76,10 @@ reg add HKCU\Software\ModernMenu7z /v Debug /t REG_DWORD /d 1 /f
 Автор не несёт ответственности за любой ущерб или потерю данных. Проект **не связан** с проектом 7-Zip
 (Игорь Павлов) и Microsoft и не одобрен ими. 7-Zip и Windows принадлежат их владельцам.
 См. [NOTICE.md](NOTICE.md).
+
+## Авторство
+Автор проекта: [Djon934](https://github.com/Djon934). Код, скрипты сборки и документация написаны с помощью
+**Claude** (ИИ-ассистент компании Anthropic) и проверены автором на Windows 11. Значок проекта нарисован специально для него.
 
 ## Лицензия
 [MIT](LICENSE) © 2026 Djon934

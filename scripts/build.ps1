@@ -20,32 +20,64 @@ cmd /c "`"$vcvars`" >nul && set" | ForEach-Object {
     if ($_ -match '^(.*?)=(.*)$') { Set-Item -Path "env:$($Matches[1])" -Value $Matches[2] }
 }
 
-# --- 2. Compile
+# --- 2. Version, icon and version-info resources
+$run  = if ($env:GITHUB_RUN_NUMBER) { $env:GITHUB_RUN_NUMBER } else { '0' }
+$ver4 = ($Version -replace '-.*$', '') + '.' + $run
+$vcomma = $ver4.Replace('.', ',')
+Copy-Item "$root\assets\icon.ico" $out
+
+function New-ResourceFile($name, $fileName, $fileType) {
+    $rc = @"
+#include <winver.h>
+1 ICON "icon.ico"
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION $vcomma
+ PRODUCTVERSION $vcomma
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE $fileType
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Djon934"
+      VALUE "FileDescription", "Modern context menu for 7-Zip"
+      VALUE "FileVersion", "$Version"
+      VALUE "InternalName", "ModernMenu7z"
+      VALUE "LegalCopyright", "Copyright (c) 2026 Djon934. MIT License."
+      VALUE "OriginalFilename", "$fileName"
+      VALUE "ProductName", "Modern context menu for 7-Zip"
+      VALUE "ProductVersion", "$Version"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END
+"@
+    Set-Content -Path "$out\$name.rc" -Value $rc -Encoding Ascii
+    Push-Location $out
+    try { & rc /nologo /fo "$name.res" "$name.rc"; Assert-Ok "Resource compile ($name)" } finally { Pop-Location }
+}
+New-ResourceFile 'dll' 'ModernMenu7z.dll' 'VFT_DLL'
+New-ResourceFile 'exe' 'ModernMenu7z.exe' 'VFT_APP'
+
+# --- 3. Compile
 Push-Location $out
 try {
     & cl /nologo /std:c++17 /EHsc /O2 /MT /GS /W3 /DUNICODE /D_UNICODE /LD "$root\src\dllmain.cpp" `
-        /Fe:ModernMenu7z.dll /link "/DEF:$root\src\exports.def" /DYNAMICBASE /NXCOMPAT /GUARD:CF
+        /Fe:ModernMenu7z.dll /link "/DEF:$root\src\exports.def" /DYNAMICBASE /NXCOMPAT /GUARD:CF dll.res
     Assert-Ok 'DLL compile'
-    & cl /nologo /O1 /MT "$root\src\stub.cpp" /Fe:ModernMenu7z.exe
+    & cl /nologo /O1 /MT "$root\src\stub.cpp" /Fe:ModernMenu7z.exe /link exe.res
     Assert-Ok 'Stub compile'
 } finally { Pop-Location }
 
-# --- 3. Package icons (own simple icons, unrelated to 7-Zip)
-Add-Type -AssemblyName System.Drawing
-function New-Logo($path, $size) {
-    $bmp = New-Object System.Drawing.Bitmap $size, $size
-    $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $g.Clear([System.Drawing.Color]::FromArgb(255, 45, 92, 160))
-    $font = New-Object System.Drawing.Font('Segoe UI', [single]($size * 0.38), [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
-    $fmt = New-Object System.Drawing.StringFormat
-    $fmt.Alignment = 'Center'; $fmt.LineAlignment = 'Center'
-    $g.DrawString('MM', $font, [System.Drawing.Brushes]::White, (New-Object System.Drawing.RectangleF 0, 0, $size, $size), $fmt)
-    $bmp.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-    $g.Dispose(); $bmp.Dispose()
-}
-New-Logo "$stage\Assets\StoreLogo.png" 50
-New-Logo "$stage\Assets\Square44x44Logo.png" 44
-New-Logo "$stage\Assets\Square150x150Logo.png" 150
+# --- Package images (own icon from assets/, unrelated to 7-Zip)
+Copy-Item "$root\assets\StoreLogo.png", "$root\assets\Square44x44Logo.png", "$root\assets\Square150x150Logo.png" "$stage\Assets"
 
 # --- 4. Signing certificate
 $pfx = Join-Path $out 'sign.pfx'
@@ -72,8 +104,6 @@ if ($env:SIGN_PFX_BASE64) {
 }
 
 # --- 5. Manifest
-$run  = if ($env:GITHUB_RUN_NUMBER) { $env:GITHUB_RUN_NUMBER } else { '0' }
-$ver4 = ($Version -replace '-.*$', '') + '.' + $run
 $tpl  = Get-Content "$root\packaging\AppxManifest.xml.template" -Raw -Encoding UTF8
 $tpl  = $tpl.Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4)
 [IO.File]::WriteAllText("$stage\AppxManifest.xml", $tpl, (New-Object Text.UTF8Encoding $false))

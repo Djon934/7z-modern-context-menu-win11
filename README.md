@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/icon-256.png" width="96" alt="icon"></p>
+
 # 7-Zip Modern Context Menu for Windows 11
 
 **Windows 11 modern context menu for 7-Zip.** Puts the full 7-Zip menu into the new Windows 11 right-click menu,
@@ -73,6 +75,10 @@ installs a Windows package, adds a certificate to *Trusted People* and restarts 
 liable for any damage or data loss. This project is **not affiliated with** or endorsed by the 7-Zip project
 (Igor Pavlov) or Microsoft. 7-Zip and Windows are trademarks or property of their owners.
 See [NOTICE.md](NOTICE.md).
+
+## Credits
+Created by [Djon934](https://github.com/Djon934). The code, build scripts and documentation were written with the help of
+**Claude** (an AI assistant by Anthropic) and tested by the author on Windows 11. The project icon was drawn for this project.
 
 ## License
 [MIT](LICENSE) © 2026 Djon934
