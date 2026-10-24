@@ -1,4 +1,4 @@
-﻿# Установка. Запускайте через install.cmd (двойной щелчок). Нужны права администратора.
+# Install ModernMenu7z. Run via install.cmd. Administrator rights are required.
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $PSCommandPath
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -7,40 +7,44 @@ if (-not $isAdmin) {
     exit
 }
 try {
-    $pkgName = 'Community.SevenZipModernMenu'
-    $dir = Join-Path $env:ProgramFiles 'SevenZipModernMenu'
+    $pkgName   = 'Djon934.ModernMenu7z'
+    $dir       = Join-Path $env:ProgramFiles 'ModernMenu7z'
+    $legacyPkg = 'Community.SevenZipModernMenu'      # name used by early test builds
+    $legacyDir = Join-Path $env:ProgramFiles 'SevenZipModernMenu'
 
     if (-not (Test-Path -LiteralPath 'Registry::HKEY_CLASSES_ROOT\*\shellex\ContextMenuHandlers\7-Zip')) {
-        Write-Warning 'Классическое меню 7-Zip не найдено в реестре. Установите 7-Zip (x64) и включите интеграцию с оболочкой.'
+        Write-Warning 'The classic 7-Zip shell integration was not found. Install 7-Zip (x64) and enable "Integrate 7-Zip to shell context menu" in its settings.'
     }
 
-    Write-Host '1/5 Удаляю предыдущую версию (если была)...'
-    Get-AppxPackage -Name $pkgName | Remove-AppxPackage
+    Write-Host '1/5 Removing previous version (if any)...'
+    Get-AppxPackage -Name $pkgName   | Remove-AppxPackage
+    Get-AppxPackage -Name $legacyPkg | Remove-AppxPackage
 
-    Write-Host '2/5 Перезапускаю проводник, чтобы освободить файлы...'
+    Write-Host '2/5 Restarting Windows Explorer to release files...'
     Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 2
 
-    Write-Host "3/5 Копирую файлы в $dir ..."
+    Write-Host "3/5 Copying files to $dir ..."
     New-Item -ItemType Directory -Force $dir | Out-Null
-    Copy-Item (Join-Path $here 'SevenZipMenuExt.dll') $dir -Force
-    Copy-Item (Join-Path $here 'SevenZipModernMenu.exe') $dir -Force
+    Copy-Item (Join-Path $here 'ModernMenu7z.dll') $dir -Force
+    Copy-Item (Join-Path $here 'ModernMenu7z.exe') $dir -Force
+    if (Test-Path $legacyDir) { Remove-Item $legacyDir -Recurse -Force -ErrorAction SilentlyContinue }
 
-    Write-Host '4/5 Добавляю сертификат в доверенные...'
-    Import-Certificate -FilePath (Join-Path $here 'SevenZipModernMenu.cer') -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople' | Out-Null
+    Write-Host '4/5 Trusting the package signing certificate...'
+    Import-Certificate -FilePath (Join-Path $here 'ModernMenu7z.cer') -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople' | Out-Null
 
-    Write-Host '5/5 Регистрирую пакет...'
-    Add-AppxPackage -Path (Join-Path $here 'SevenZipModernMenu.msix') -ExternalLocation $dir
+    Write-Host '5/5 Registering the package...'
+    Add-AppxPackage -Path (Join-Path $here 'ModernMenu7z.msix') -ExternalLocation $dir
 
     Write-Host ''
-    Write-Host 'Готово. Если пункт 7-Zip не появился, выйдите из учётной записи и войдите снова.' -ForegroundColor Green
+    Write-Host 'Done. If the 7-Zip item does not appear, sign out of Windows and sign in again.' -ForegroundColor Green
 }
 catch {
     Write-Host ''
-    Write-Host "ОШИБКА: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host $_.ScriptStackTrace
 }
 finally {
     if (-not (Get-Process explorer -ErrorAction SilentlyContinue)) { Start-Process explorer.exe }
-    Read-Host 'Нажмите Enter для выхода'
+    Read-Host 'Press Enter to close'
 }

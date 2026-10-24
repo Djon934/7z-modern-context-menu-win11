@@ -9,14 +9,14 @@
   xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
   IgnorableNamespaces="uap uap10 rescap desktop4 desktop5 com">
 
-  <Identity Name="Community.SevenZipModernMenu"
+  <Identity Name="Djon934.ModernMenu7z"
             Publisher="{{PUBLISHER}}"
             Version="{{VERSION4}}"
             ProcessorArchitecture="x64" />
 
   <Properties>
     <DisplayName>Modern context menu for 7-Zip</DisplayName>
-    <PublisherDisplayName>SevenZipModernMenu contributors</PublisherDisplayName>
+    <PublisherDisplayName>Djon934</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
     <uap10:AllowExternalContent>true</uap10:AllowExternalContent>
   </Properties>
@@ -36,7 +36,7 @@
 
   <Applications>
     <Application Id="App"
-                 Executable="SevenZipModernMenu.exe"
+                 Executable="ModernMenu7z.exe"
                  uap10:TrustLevel="mediumIL"
                  uap10:RuntimeBehavior="win32App">
       <uap:VisualElements AppListEntry="none"
@@ -59,7 +59,7 @@
         <com:Extension Category="windows.comServer">
           <com:ComServer>
             <com:SurrogateServer DisplayName="Modern context menu for 7-Zip">
-              <com:Class Id="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" Path="SevenZipMenuExt.dll" ThreadingModel="STA" />
+              <com:Class Id="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" Path="ModernMenu7z.dll" ThreadingModel="STA" />
             </com:SurrogateServer>
           </com:ComServer>
         </com:Extension>

@@ -24,9 +24,9 @@ cmd /c "`"$vcvars`" >nul && set" | ForEach-Object {
 Push-Location $out
 try {
     & cl /nologo /std:c++17 /EHsc /O2 /MT /GS /W3 /DUNICODE /D_UNICODE /LD "$root\src\dllmain.cpp" `
-        /Fe:SevenZipMenuExt.dll /link "/DEF:$root\src\exports.def" /DYNAMICBASE /NXCOMPAT /GUARD:CF
+        /Fe:ModernMenu7z.dll /link "/DEF:$root\src\exports.def" /DYNAMICBASE /NXCOMPAT /GUARD:CF
     Assert-Ok 'DLL compile'
-    & cl /nologo /O1 /MT "$root\src\stub.cpp" /Fe:SevenZipModernMenu.exe
+    & cl /nologo /O1 /MT "$root\src\stub.cpp" /Fe:ModernMenu7z.exe
     Assert-Ok 'Stub compile'
 } finally { Pop-Location }
 
@@ -49,7 +49,7 @@ New-Logo "$stage\Assets\Square150x150Logo.png" 150
 
 # --- 4. Signing certificate
 $pfx = Join-Path $out 'sign.pfx'
-$cer = Join-Path $dist 'SevenZipModernMenu.cer'
+$cer = Join-Path $dist 'ModernMenu7z.cer'
 if ($env:SIGN_PFX_BASE64) {
     # permanent certificate from repository secrets
     $pfxPass = $env:SIGN_PFX_PASSWORD
@@ -57,23 +57,26 @@ if ($env:SIGN_PFX_BASE64) {
     $c = New-Object Security.Cryptography.X509Certificates.X509Certificate2 $pfx, $pfxPass
     [IO.File]::WriteAllBytes($cer, $c.Export('Cert'))
     $publisher = $c.Subject
+    Write-Host "Signing with permanent certificate: $publisher"
 } else {
-    # temporary self-signed certificate (test builds)
+    # temporary self-signed certificate (test builds, forks without secrets)
     $pfxPass = [guid]::NewGuid().ToString('N')
-    $publisher = 'CN=SevenZipModernMenu'
+    $publisher = 'CN=ModernMenu7z-Test'
     $c = New-SelfSignedCertificate -Type Custom -Subject $publisher -KeyUsage DigitalSignature `
-        -FriendlyName 'SevenZipModernMenu (test)' -CertStoreLocation 'Cert:\CurrentUser\My' `
+        -FriendlyName 'ModernMenu7z (test)' -CertStoreLocation 'Cert:\CurrentUser\My' `
         -NotAfter (Get-Date).AddYears(3) `
         -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}')
     Export-PfxCertificate -Cert $c -FilePath $pfx -Password (ConvertTo-SecureString $pfxPass -AsPlainText -Force) | Out-Null
     Export-Certificate -Cert $c -FilePath $cer | Out-Null
+    Write-Host "Signing with TEMPORARY test certificate: $publisher"
 }
 
-# --- 5. Manifest template
+# --- 5. Manifest
 $run  = if ($env:GITHUB_RUN_NUMBER) { $env:GITHUB_RUN_NUMBER } else { '0' }
 $ver4 = ($Version -replace '-.*$', '') + '.' + $run
 $tpl  = Get-Content "$root\packaging\AppxManifest.xml.template" -Raw -Encoding UTF8
 $tpl  = $tpl.Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4)
+[IO.File]::WriteAllText("$stage\AppxManifest.xml", $tpl, (New-Object Text.UTF8Encoding $false))
 
 # --- 6. Pack and sign
 function Find-SdkTool($name) {
@@ -84,24 +87,14 @@ function Find-SdkTool($name) {
 }
 $makeappx = Find-SdkTool 'makeappx.exe'
 $signtool = Find-SdkTool 'signtool.exe'
-$msix = Join-Path $dist 'SevenZipModernMenu.msix'
-
-# The COM server section namespace is not known for sure: try variants one by one.
-$packed = $false
-foreach ($c in 'com4', 'com') {
-    $m = $tpl.Replace('{{C}}', $c)
-    [IO.File]::WriteAllText("$stage\AppxManifest.xml", $m, (New-Object Text.UTF8Encoding $false))
-    Write-Host "=== Trying manifest variant: $c ==="
-    & $makeappx pack /d $stage /p $msix /nv /o
-    if ($LASTEXITCODE -eq 0) { Write-Host "=== Manifest variant OK: $c ==="; $packed = $true; break }
-}
-if (-not $packed) { throw 'makeappx failed with all manifest variants' }
-
+$msix = Join-Path $dist 'ModernMenu7z.msix'
+& $makeappx pack /d $stage /p $msix /nv /o
+Assert-Ok 'makeappx'
 & $signtool sign /fd SHA256 /f $pfx /p $pfxPass $msix
 Assert-Ok 'signtool'
 
 # --- 7. Final file set
-Copy-Item "$out\SevenZipMenuExt.dll", "$out\SevenZipModernMenu.exe" $dist
+Copy-Item "$out\ModernMenu7z.dll", "$out\ModernMenu7z.exe" $dist
 Copy-Item "$root\installer\*" $dist
 Remove-Item $pfx -Force
 Get-ChildItem $dist | Format-Table Name, Length

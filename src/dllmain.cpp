@@ -1,4 +1,4 @@
-// SevenZipMenuExt: расширение нового контекстного меню Windows 11 (IExplorerCommand).
+// ModernMenu7z: расширение нового контекстного меню Windows 11 (IExplorerCommand).
 //
 // Идея: не воспроизводить пункты меню вручную, а попросить установленный у
 // пользователя 7-Zip (его классический обработчик IContextMenu) построить меню,
@@ -46,14 +46,14 @@ static std::atomic<long> g_objects{0};
 static std::atomic<long> g_locks{0};
 
 // ---------------------------------------------------------------- журнал
-// Включается командой: reg add HKCU\Software\SevenZipModernMenu /v Debug /t REG_DWORD /d 1 /f
-// Файл: %LOCALAPPDATA%\SevenZipModernMenu\log.txt
+// Включается командой: reg add HKCU\Software\ModernMenu7z /v Debug /t REG_DWORD /d 1 /f
+// Файл: %LOCALAPPDATA%\ModernMenu7z\log.txt
 static void Log(const wchar_t* fmt, ...)
 {
     static int enabled = -1;
     if (enabled < 0) {
         DWORD v = 0, cb = sizeof(v);
-        enabled = (RegGetValueW(HKEY_CURRENT_USER, L"Software\\SevenZipModernMenu", L"Debug",
+        enabled = (RegGetValueW(HKEY_CURRENT_USER, L"Software\\ModernMenu7z", L"Debug",
                                 RRF_RT_REG_DWORD, nullptr, &v, &cb) == ERROR_SUCCESS && v) ? 1 : 0;
     }
     if (!enabled) return;
@@ -66,7 +66,7 @@ static void Log(const wchar_t* fmt, ...)
 
     wchar_t path[MAX_PATH];
     if (!GetEnvironmentVariableW(L"LOCALAPPDATA", path, ARRAYSIZE(path))) return;
-    PathAppendW(path, L"SevenZipModernMenu");
+    PathAppendW(path, L"ModernMenu7z");
     CreateDirectoryW(path, nullptr);
     PathAppendW(path, L"log.txt");
 
