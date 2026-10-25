@@ -1,113 +1,116 @@
 <p align="center"><img src="assets/icon-256.png" width="96" alt="icon"></p>
 
-# 7-Zip Modern Context Menu for Windows 11
+# 7-Zip Modern Context Menu для Windows 11
 
-**Windows 11 modern context menu for 7-Zip.** Puts the full 7-Zip menu into the new Windows 11 right-click menu,
-so you don't have to click "Show more options".
+**Новое контекстное меню Windows 11 для 7-Zip.** Добавляет полное меню 7-Zip в новое меню правой кнопки мыши,
+чтобы не нажимать «Показать дополнительные параметры».
 
-🇷🇺 [Читать на русском](README.ru.md)
+🇬🇧 [English version](README.en.md)
 
-<p align="center"><img src="docs/images/menu-compact.png" width="380" alt="The 7-Zip menu in the Windows 11 context menu"></p>
+<p align="center"><img src="docs/images/menu-compact.png" width="380" alt="Меню 7-Zip в контекстном меню Windows 11"></p>
 
-## Features
-- All 7-Zip items in the new menu: open, extract, test, add to archive, CRC SHA and more.
-- Items, order, language and icons come **from your installed 7-Zip**, so everything matches the classic menu.
-- 7-Zip settings still work: *7-Zip File Manager → Tools → Options → 7-Zip* (hide items, cascade on/off, icons).
-- Works for files, folders and drives (C:, D:...), including multiple selection.
-- Builds for x64 and ARM64 (ARM64 is experimental).
-- Nothing from 7-Zip is bundled or modified. Open source, MIT license, built publicly by GitHub Actions.
+## Возможности
+- Все пункты 7-Zip в новом меню: открыть, распаковать, тестировать, добавить к архиву, CRC SHA и другие.
+- Пункты, порядок, язык и значки берутся **из установленного у вас 7-Zip**, поэтому всё совпадает с классическим меню.
+- Настройки 7-Zip продолжают работать: *7-Zip File Manager → Сервис → Настройки → 7-Zip* (скрыть пункты, каскад, значки).
+- Работает для файлов и папок, в том числе при выделении нескольких объектов.
+- Сборки для x64 и ARM64 (ARM64 пока экспериментальная).
+- Ничего от 7-Zip не включено и не изменено. Открытый код, лицензия MIT, сборка публично через GitHub Actions.
 
-## Screenshots
-The menu always mirrors your 7-Zip options (screenshots use the Russian Windows UI).
+## Скриншоты
+Меню всегда повторяет настройки вашего 7-Zip.
 
 <table>
   <tr>
-    <th>7-Zip options</th>
-    <th>Result in the new Windows 11 menu</th>
+    <th>Настройки 7-Zip</th>
+    <th>Результат в новом меню Windows 11</th>
   </tr>
   <tr>
-    <td><img src="docs/images/settings-all.png" width="300" alt="All 7-Zip menu items enabled"></td>
-    <td><img src="docs/images/menu-full.png" width="360" alt="Full menu"></td>
+    <td><img src="docs/images/settings-all.png" width="300" alt="Все пункты меню 7-Zip включены"></td>
+    <td><img src="docs/images/menu-full.png" width="360" alt="Полное меню"></td>
   </tr>
   <tr>
-    <td><img src="docs/images/settings-minimal.png" width="300" alt="Only the main items enabled"></td>
-    <td><img src="docs/images/menu-compact.png" width="360" alt="Compact menu"></td>
+    <td><img src="docs/images/settings-minimal.png" width="300" alt="Включены только основные пункты"></td>
+    <td><img src="docs/images/menu-compact.png" width="360" alt="Компактное меню"></td>
   </tr>
 </table>
 
-### Where the item appears
-On Windows 11 builds that have *Settings → Personalization → Context menu → App extensions*, you choose whether
-the item is shown in the main menu (toggle **On**, as below) or inside the *App extensions* submenu.
+### Где появится пункт
+В сборках Windows 11, где есть страница *Параметры → Персонализация → Контекстное меню → Расширения приложений*,
+вы выбираете, показывать ли пункт в главном меню (переключатель **Вкл.**, как на снимке) или внутри подменю
+«Расширения приложений».
 
-<img src="docs/images/personalization.png" width="520" alt="Windows Settings: Personalization, Context menu">
+<img src="docs/images/personalization.png" width="520" alt="Параметры Windows: Персонализация, Контекстное меню">
 
-## Requirements
-- Windows 11 (tested on Windows 11 Pro 26H2).
-- [7-Zip](https://www.7-zip.org/) for the same architecture as your Windows (**x64** or **ARM64**), installed normally (tested with x64 7-Zip 26.05).
-- In 7-Zip options, the checkbox **"Integrate 7-Zip to shell context menu"** must stay enabled. The extension uses it.
+## Требования
+- Windows 11 (проверено на Windows 11 Pro 26H2).
+- [7-Zip](https://www.7-zip.org/) той же архитектуры, что и ваша Windows (**x64** или **ARM64**), установленный обычным образом (проверено на x64 7-Zip 26.05).
+- В настройках 7-Zip должна оставаться включённой галочка **«Встроить 7-Zip в контекстное меню оболочки»**.
+  Расширение использует именно её.
 
-## Installation
-1. Open the [Releases](../../releases) page and download `ModernMenu7z-<version>-x64.zip` (most PCs) or `ModernMenu7z-<version>-arm64.zip` (Windows on ARM).
-2. Extract the archive to any folder (don't run files from inside the zip).
-3. Double-click **`install.cmd`** and confirm the administrator prompt (UAC).
-4. Wait for "Done" and press Enter. The taskbar may blink for a moment: Explorer restarts.
-5. Right-click any file or folder. The **7-Zip** item appears in the new menu.
+## Установка
+1. Откройте страницу [Releases](../../releases) и скачайте `ModernMenu7z-<версия>-x64.zip` (большинство ПК) или `ModernMenu7z-<версия>-arm64-beta.zip` (Windows на ARM, бета).
+2. Распакуйте архив в любую папку (не запускайте файлы изнутри архива).
+3. Дважды щёлкните **`install.cmd`** и подтвердите запрос администратора (UAC).
+4. Дождитесь сообщения «Done» и нажмите Enter. Панель задач может на мгновение мигнуть: перезапускается проводник.
+5. Нажмите правой кнопкой на любой файл или папку. Пункт **7-Zip** появится в новом меню.
 
-If it does not appear, sign out of Windows and sign in again.
+Если пункта нет, выйдите из учётной записи Windows и войдите снова.
 
-### Verify the download (optional)
-Compare the SHA-256 of the zip with `SHA256SUMS.txt` from the release:
-`certutil -hashfile ModernMenu7z-<version>-x64.zip SHA256`
+### Проверка файла (по желанию)
+Сравните SHA-256 архива с файлом `SHA256SUMS.txt` из релиза:
+`certutil -hashfile ModernMenu7z-<версия>-x64.zip SHA256`
 
-## Uninstallation
-Run **`uninstall.cmd`** from the extracted folder.
+## Удаление
+Запустите **`uninstall.cmd`** из распакованной папки.
 
-## Known limitations
-- **Nested submenus are flattened.** Windows 11 supports only one submenu level in the new menu
-  ([Microsoft documentation](https://learn.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-iexplorercommand-enumsubcommands)).
-  7-Zip groups such as *CRC SHA* appear as items like `CRC SHA › SHA-256`. Hide unneeded ones in the 7-Zip options.
-- **ARM64 is experimental:** it is built automatically but has not been tested on real ARM64 hardware yet. Reports are welcome.
-- Requires the classic 7-Zip handler (see Requirements).
-- The menu for the empty space inside a folder (background) is not supported: 7-Zip has no such item in the classic menu either.
+## Известные ограничения
+- **Вложенные подменю «разворачиваются».** Новое меню Windows 11 поддерживает только один уровень подменю
+  ([документация Microsoft](https://learn.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-iexplorercommand-enumsubcommands)).
+  Группы 7-Zip вроде *CRC SHA* выглядят как пункты `CRC SHA › SHA-256`. Ненужные можно скрыть в настройках 7-Zip.
+- **ARM64 экспериментальная:** собирается автоматически, но на реальном ARM64-устройстве пока не проверена. Отчёты приветствуются.
+- Нужен классический обработчик 7-Zip (см. «Требования»).
+- Диски (C:, D:...) не поддерживаются: Windows разрешает расширениям нового меню только файлы и папки. Для диска используйте «Показать дополнительные параметры».
+- Меню для пустого места внутри папки (фон) не поддерживается: в классическом меню 7-Zip его тоже нет.
 
-## How it works
-The extension implements `IExplorerCommand` and is registered through a signed *sparse MSIX package*.
-When you right-click, it asks the installed 7-Zip for its classic context menu (`IContextMenu`) and shows the same
-items in the new menu. Clicks are passed back to 7-Zip. See [`src/dllmain.cpp`](src/dllmain.cpp).
+## Как это работает
+Расширение реализует `IExplorerCommand` и регистрируется через подписанный *sparse MSIX-пакет*.
+При правом щелчке оно запрашивает у установленного 7-Zip его классическое меню (`IContextMenu`) и показывает те же
+пункты в новом меню. Нажатия передаются обратно в 7-Zip. См. [`src/dllmain.cpp`](src/dllmain.cpp).
 
-## About the certificate
-Windows only accepts signed packages, so releases are signed with the author's certificate (`CN=Djon934`).
-The installer adds this **public** certificate to *Trusted People* on your PC. This means Windows will trust other
-software signed with the same key too. If you don't want that, build the project yourself (below) and use your own certificate,
-or remove the certificate after installation: `Win+R → certlm.msc → Trusted People → Certificates`.
-The package keeps working after the certificate is removed from the store.
+## О сертификате
+Windows принимает только подписанные пакеты, поэтому релизы подписаны сертификатом автора (`CN=Djon934`).
+Установщик добавляет этот **публичный** сертификат в «Доверенные лица» на вашем компьютере. Это значит, что Windows
+будет доверять и другому ПО, подписанному тем же ключом. Если вас это не устраивает, соберите проект сами (см. ниже)
+со своим сертификатом или удалите сертификат после установки: `Win+R → certlm.msc → Trusted People → Certificates`.
+Установленное расширение продолжит работать и после удаления сертификата.
 
-## Troubleshooting
-**The item is not in the main menu?** Open *Settings → Personalization → Context menu → App extensions* and turn on
-"Modern context menu for 7-Zip" (or look inside the *App extensions* submenu).
+## Если что-то не работает
+**Пункта нет в главном меню?** Откройте *Параметры → Персонализация → Контекстное меню → Расширения приложений* и включите
+«Modern context menu for 7-Zip» (или поищите пункт в подменю «Расширения приложений»).
 
-Enable the log and right-click a file:
+Включите журнал и щёлкните правой кнопкой по файлу:
 ```
 reg add HKCU\Software\ModernMenu7z /v Debug /t REG_DWORD /d 1 /f
 ```
-The log is in `%LOCALAPPDATA%\ModernMenu7z\log.txt`. Attach it to an issue.
+Журнал лежит в `%LOCALAPPDATA%\ModernMenu7z\log.txt`. Приложите его к обращению (issue).
 
-## Build it yourself
-Fork the repository, enable GitHub Actions, push a commit. The `CI` workflow produces an artifact signed with a temporary
-test certificate. For your own permanent certificate run `tools/New-SigningCertificate.cmd` and add the secrets
-`SIGN_PFX_BASE64` and `SIGN_PFX_PASSWORD` (repository *Settings → Secrets and variables → Actions*).
-A release is made by pushing a tag `vX.Y.Z` that matches the `VERSION` file.
+## Сборка самостоятельно
+Сделайте форк, включите GitHub Actions и отправьте коммит. Workflow `CI` соберёт артефакт, подписанный временным
+тестовым сертификатом. Для собственного постоянного сертификата запустите `tools/New-SigningCertificate.cmd` и добавьте
+секреты `SIGN_PFX_BASE64` и `SIGN_PFX_PASSWORD` (в репозитории *Settings → Secrets and variables → Actions*).
+Релиз создаётся тегом `vX.Y.Z`, совпадающим с файлом `VERSION`.
 
-## Disclaimer
-This software is provided **"as is"**, without warranty of any kind. You use it at your own risk. The installer
-installs a Windows package, adds a certificate to *Trusted People* and restarts Windows Explorer. The author is not
-liable for any damage or data loss. This project is **not affiliated with** or endorsed by the 7-Zip project
-(Igor Pavlov) or Microsoft. 7-Zip and Windows are trademarks or property of their owners.
-See [NOTICE.md](NOTICE.md).
+## Отказ от ответственности
+Программа предоставляется **«как есть»**, без каких-либо гарантий. Вы используете её на свой страх и риск.
+Установщик устанавливает пакет Windows, добавляет сертификат в «Доверенные лица» и перезапускает проводник.
+Автор не несёт ответственности за любой ущерб или потерю данных. Проект **не связан** с проектом 7-Zip
+(Игорь Павлов) и Microsoft и не одобрен ими. 7-Zip и Windows принадлежат их владельцам.
+См. [NOTICE.md](NOTICE.md).
 
-## Credits
-Created by [Djon934](https://github.com/Djon934). The code, build scripts and documentation were written with the help of
-**Claude** (an AI assistant by Anthropic) and tested by the author on Windows 11. The project icon was drawn for this project.
+## Авторство
+Автор проекта: [Djon934](https://github.com/Djon934). Код, скрипты сборки и документация написаны с помощью
+**Claude** (ИИ-ассистент компании Anthropic) и проверены автором на Windows 11. Значок проекта нарисован специально для него.
 
-## License
+## Лицензия
 [MIT](LICENSE) © 2026 Djon934

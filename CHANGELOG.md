@@ -4,20 +4,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versions: [SemVer](http
 
 ## [Unreleased]
 
-## [1.1.0-beta.1] - 2026-10-26
+## [1.1.0] - 2026-10-26
 
 ### Added
-- **ARM64 build** (experimental, not yet tested on real ARM64 hardware). Releases now contain two archives: `ModernMenu7z-<version>-x64.zip` and `ModernMenu7z-<version>-arm64.zip`. On ARM64 Windows, install 7-Zip for ARM64.
+- **ARM64 build** (beta, not yet tested on real ARM64 hardware). Releases now contain two archives: `ModernMenu7z-<version>-x64.zip` and `ModernMenu7z-<version>-arm64-beta.zip`. The word "beta" will be dropped from the name once the ARM64 build is confirmed to work on real hardware. On ARM64 Windows, install 7-Zip for ARM64.
 - The installer checks that the package matches the Windows architecture and stops with a clear message if it does not.
 
 ### Changed
 - The build checks that the DLL and the stub are really built for the requested architecture.
 - CI and Release build both architectures; the release is published only when both builds succeed.
-
-## [1.0.1] - 2026-10-25
-
-### Added
-- 7-Zip menu for drives (C:, D:...) in the new Windows 11 menu.
 
 ## [1.0.0] - 2026-10-24
 

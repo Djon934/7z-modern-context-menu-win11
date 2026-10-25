@@ -10,11 +10,12 @@ try {
     # The package must match the Windows architecture (Explorer loads only native DLLs)
     $osArch  = [string][Runtime.InteropServices.RuntimeInformation]::OSArchitecture
     $want    = if ($osArch -eq 'Arm64') { 'arm64' } elseif ($osArch -eq 'X64') { 'x64' } else { $osArch.ToLower() }
+    $zipSuffix = if ($want -eq 'arm64') { 'arm64-beta' } else { $want }
     $archFile = Join-Path $here 'arch.txt'
     if (Test-Path -LiteralPath $archFile) {
         $pkgArch = (Get-Content -LiteralPath $archFile -Raw).Trim()
         if ($pkgArch -ne $want) {
-            throw "This package is for $pkgArch, but your Windows is $osArch. Download the $want package (ModernMenu7z-<version>-$want.zip) instead."
+            throw "This package is for $pkgArch, but your Windows is $osArch. Download the $want package (ModernMenu7z-<version>-$zipSuffix.zip) instead."
         }
     }
 
