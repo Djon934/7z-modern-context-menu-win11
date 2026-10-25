@@ -12,7 +12,7 @@
   <Identity Name="Djon934.ModernMenu7z"
             Publisher="{{PUBLISHER}}"
             Version="{{VERSION4}}"
-            ProcessorArchitecture="x64" />
+            ProcessorArchitecture="{{ARCH}}" />
 
   <Properties>
     <DisplayName>Modern context menu for 7-Zip</DisplayName>

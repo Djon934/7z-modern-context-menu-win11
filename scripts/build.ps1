@@ -1,5 +1,8 @@
 # Build: DLL + stub + sparse MSIX package + signing. Run in Windows PowerShell 5.1.
-param([Parameter(Mandatory)][string]$Version)
+param(
+    [Parameter(Mandatory)][string]$Version,
+    [ValidateSet('x64','arm64')][string]$Arch = 'x64'
+)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
@@ -11,12 +14,15 @@ New-Item -ItemType Directory -Force $out, $dist, $stage, "$stage\Assets" | Out-N
 
 function Assert-Ok($what) { if ($LASTEXITCODE -ne 0) { throw "$what failed with exit code $LASTEXITCODE" } }
 
-# --- 1. MSVC environment
+# --- 1. MSVC environment (arm64 is cross-compiled on the x64 host)
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-$vs = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-if (-not $vs) { throw 'Visual Studio with C++ tools not found' }
-$vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvars64.bat'
-cmd /c "`"$vcvars`" >nul && set" | ForEach-Object {
+$component = if ($Arch -eq 'arm64') { 'Microsoft.VisualStudio.Component.VC.Tools.ARM64' } else { 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64' }
+$vs = & $vswhere -latest -products * -requires $component -property installationPath
+if (-not $vs) { throw "Visual Studio with C++ tools for $Arch not found (component $component)" }
+$vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvarsall.bat'
+$vcArg = if ($Arch -eq 'arm64') { 'x64_arm64' } else { 'x64' }
+Write-Host "=== Building for $Arch (vcvarsall $vcArg) ==="
+cmd /c "`"$vcvars`" $vcArg >nul && set" | ForEach-Object {
     if ($_ -match '^(.*?)=(.*)$') { Set-Item -Path "env:$($Matches[1])" -Value $Matches[2] }
 }
 
@@ -74,6 +80,13 @@ try {
     Assert-Ok 'DLL compile'
     & cl /nologo /O1 /MT "$root\src\stub.cpp" /Fe:ModernMenu7z.exe /link exe.res
     Assert-Ok 'Stub compile'
+    # Make sure the binaries really are for the requested architecture
+    $want = if ($Arch -eq 'arm64') { 'ARM64' } else { 'x64' }
+    foreach ($f in 'ModernMenu7z.dll', 'ModernMenu7z.exe') {
+        $line = (& dumpbin /headers $f | Select-String 'machine \(' | Select-Object -First 1).ToString().Trim()
+        Write-Host "$f : $line"
+        if ($line -notmatch [regex]::Escape("($want)")) { throw "$f was not built for $want" }
+    }
 } finally { Pop-Location }
 
 # --- Package images (own icon from assets/, unrelated to 7-Zip)
@@ -105,7 +118,7 @@ if ($env:SIGN_PFX_BASE64) {
 
 # --- 5. Manifest
 $tpl  = Get-Content "$root\packaging\AppxManifest.xml.template" -Raw -Encoding UTF8
-$tpl  = $tpl.Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4)
+$tpl  = $tpl.Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4).Replace('{{ARCH}}', $Arch)
 
 # --- 6. Pack and sign
 function Find-SdkTool($name) {
@@ -144,5 +157,6 @@ Copy-Item "$out\ModernMenu7z.dll", "$out\ModernMenu7z.exe" $dist
 New-Item -ItemType Directory -Force "$dist\Assets" | Out-Null
 Copy-Item "$root\assets\StoreLogo.png", "$root\assets\Square44x44Logo.png", "$root\assets\Square150x150Logo.png" "$dist\Assets"
 Copy-Item "$root\installer\*" $dist
+Set-Content -Path "$dist\arch.txt" -Value $Arch -Encoding Ascii
 Remove-Item $pfx -Force
 Get-ChildItem $dist | Format-Table Name, Length

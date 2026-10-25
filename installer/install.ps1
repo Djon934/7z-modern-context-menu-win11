@@ -7,13 +7,24 @@ if (-not $isAdmin) {
     exit
 }
 try {
+    # The package must match the Windows architecture (Explorer loads only native DLLs)
+    $osArch  = [string][Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+    $want    = if ($osArch -eq 'Arm64') { 'arm64' } elseif ($osArch -eq 'X64') { 'x64' } else { $osArch.ToLower() }
+    $archFile = Join-Path $here 'arch.txt'
+    if (Test-Path -LiteralPath $archFile) {
+        $pkgArch = (Get-Content -LiteralPath $archFile -Raw).Trim()
+        if ($pkgArch -ne $want) {
+            throw "This package is for $pkgArch, but your Windows is $osArch. Download the $want package (ModernMenu7z-<version>-$want.zip) instead."
+        }
+    }
+
     $pkgName   = 'Djon934.ModernMenu7z'
     $dir       = Join-Path $env:ProgramFiles 'ModernMenu7z'
     $legacyPkg = 'Community.SevenZipModernMenu'      # name used by early test builds
     $legacyDir = Join-Path $env:ProgramFiles 'SevenZipModernMenu'
 
     if (-not (Test-Path -LiteralPath 'Registry::HKEY_CLASSES_ROOT\*\shellex\ContextMenuHandlers\7-Zip')) {
-        Write-Warning 'The classic 7-Zip shell integration was not found. Install 7-Zip (x64) and enable "Integrate 7-Zip to shell context menu" in its settings.'
+        Write-Warning "The classic 7-Zip shell integration was not found. Install 7-Zip for your architecture ($want) and enable 'Integrate 7-Zip to shell context menu' in its settings."
     }
 
     Write-Host '1/5 Removing previous version (if any)...'

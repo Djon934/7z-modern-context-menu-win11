@@ -13,7 +13,8 @@ so you don't have to click "Show more options".
 - All 7-Zip items in the new menu: open, extract, test, add to archive, CRC SHA and more.
 - Items, order, language and icons come **from your installed 7-Zip**, so everything matches the classic menu.
 - 7-Zip settings still work: *7-Zip File Manager → Tools → Options → 7-Zip* (hide items, cascade on/off, icons).
-- Works for files and folders, including multiple selection.
+- Works for files, folders and drives (C:, D:...), including multiple selection.
+- Builds for x64 and ARM64 (ARM64 is experimental).
 - Nothing from 7-Zip is bundled or modified. Open source, MIT license, built publicly by GitHub Actions.
 
 ## Screenshots
@@ -42,11 +43,11 @@ the item is shown in the main menu (toggle **On**, as below) or inside the *App 
 
 ## Requirements
 - Windows 11 (tested on Windows 11 Pro 26H2).
-- [7-Zip](https://www.7-zip.org/) **x64**, installed normally (tested with 7-Zip 26.05).
+- [7-Zip](https://www.7-zip.org/) for the same architecture as your Windows (**x64** or **ARM64**), installed normally (tested with x64 7-Zip 26.05).
 - In 7-Zip options, the checkbox **"Integrate 7-Zip to shell context menu"** must stay enabled. The extension uses it.
 
 ## Installation
-1. Open the [Releases](../../releases) page and download `ModernMenu7z-<version>-x64.zip`.
+1. Open the [Releases](../../releases) page and download `ModernMenu7z-<version>-x64.zip` (most PCs) or `ModernMenu7z-<version>-arm64.zip` (Windows on ARM).
 2. Extract the archive to any folder (don't run files from inside the zip).
 3. Double-click **`install.cmd`** and confirm the administrator prompt (UAC).
 4. Wait for "Done" and press Enter. The taskbar may blink for a moment: Explorer restarts.
@@ -65,8 +66,9 @@ Run **`uninstall.cmd`** from the extracted folder.
 - **Nested submenus are flattened.** Windows 11 supports only one submenu level in the new menu
   ([Microsoft documentation](https://learn.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-iexplorercommand-enumsubcommands)).
   7-Zip groups such as *CRC SHA* appear as items like `CRC SHA › SHA-256`. Hide unneeded ones in the 7-Zip options.
-- x64 only. Requires the classic 7-Zip handler (see Requirements).
-- The menu for the empty space inside a folder (background) is not supported yet.
+- **ARM64 is experimental:** it is built automatically but has not been tested on real ARM64 hardware yet. Reports are welcome.
+- Requires the classic 7-Zip handler (see Requirements).
+- The menu for the empty space inside a folder (background) is not supported: 7-Zip has no such item in the classic menu either.
 
 ## How it works
 The extension implements `IExplorerCommand` and is registered through a signed *sparse MSIX package*.
