@@ -1,28 +1,26 @@
-name: Release
+name: CI
 on:
   push:
-    tags: ['v*.*.*']
-permissions:
-  contents: write
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 jobs:
   build:
     name: Build (${{ matrix.arch }})
     runs-on: windows-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         arch: [x64, arm64]
-    env:
-      TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Check tag matches VERSION
+      - name: Check VERSION format (SemVer)
         shell: pwsh
         run: |
-          $ver = (Get-Content VERSION).Trim()
-          if ($env:TAG -ne "v$ver") { throw "Tag $env:TAG does not match VERSION ($ver)" }
-          "VERSION=$ver" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          $v = (Get-Content VERSION).Trim()
+          if ($v -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw "Invalid VERSION format: $v" }
+          "VERSION=$v" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Build
         shell: powershell
@@ -32,74 +30,17 @@ jobs:
           ARCH: ${{ matrix.arch }}
         run: ./scripts/build.ps1 -Version $env:VERSION -Arch $env:ARCH
 
-      - name: Package release zip
+      - name: SHA256 checksums
         shell: pwsh
-        env:
-          SIGN_PFX_BASE64: ${{ secrets.SIGN_PFX_BASE64 }}
-          ARCH: ${{ matrix.arch }}
         run: |
-          if (-not $env:VERSION.Contains('-') -and -not $env:SIGN_PFX_BASE64) {
-            throw 'Stable release requires the permanent signing certificate (secret SIGN_PFX_BASE64).'
-          }
-          New-Item -ItemType Directory release | Out-Null
-          Compress-Archive -Path dist/* -DestinationPath "release/ModernMenu7z-$env:VERSION-$env:ARCH.zip"
+          Get-ChildItem dist -File | Where-Object Name -ne 'SHA256SUMS.txt' |
+            ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } |
+            Set-Content dist/SHA256SUMS.txt
 
-      - name: Upload zip for the publish job
+      - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: zip-${{ matrix.arch }}
-          path: release/*.zip
+          name: ModernMenu7z-${{ env.VERSION }}-${{ matrix.arch }}
+          path: dist/*
           if-no-files-found: error
-          retention-days: 3
-
-  publish:
-    name: Publish GitHub Release
-    needs: build
-    runs-on: windows-latest
-    env:
-      TAG: ${{ github.ref_name }}
-      GH_TOKEN: ${{ github.token }}
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Check tag matches VERSION
-        shell: pwsh
-        run: |
-          $ver = (Get-Content VERSION).Trim()
-          if ($env:TAG -ne "v$ver") { throw "Tag $env:TAG does not match VERSION ($ver)" }
-          "VERSION=$ver" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
-
-      - name: Release notes from CHANGELOG
-        shell: pwsh
-        run: ./scripts/extract-notes.ps1 -Version $env:VERSION
-
-      - name: Download both zips
-        uses: actions/download-artifact@v8
-        with:
-          pattern: zip-*
-          path: release
-          merge-multiple: true
-
-      - name: Checksums
-        shell: pwsh
-        run: |
-          $zips = Get-ChildItem release -Filter *.zip | Sort-Object Name
-          if ($zips.Count -ne 2) { throw "Expected 2 zip files (x64 and arm64), found $($zips.Count)" }
-          $zips | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } |
-            Set-Content release/SHA256SUMS.txt
-          Get-Content release/SHA256SUMS.txt
-
-      - name: Publish GitHub Release
-        shell: pwsh
-        run: |
-          $files = (Get-ChildItem release -File).FullName
-          $pre = $env:VERSION.Contains('-')
-          gh release view $env:TAG *> $null
-          if ($LASTEXITCODE -eq 0) {
-            gh release upload $env:TAG @files --clobber
-            gh release edit $env:TAG --notes-file release-notes.md --prerelease=$($pre.ToString().ToLower())
-          } else {
-            $a = @($env:TAG, '--title', $env:TAG, '--notes-file', 'release-notes.md')
-            if ($pre) { $a += '--prerelease' }
-            gh release create @a @files
-          }
+          retention-days: 14
