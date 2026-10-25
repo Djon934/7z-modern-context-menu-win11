@@ -54,6 +54,7 @@
             <desktop5:ItemType Type="Directory">
               <desktop5:Verb Id="SevenZipMenuFolders" Clsid="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" />
             </desktop5:ItemType>
+{{EXTRA_ITEMTYPES}}
           </desktop4:FileExplorerContextMenus>
         </desktop4:Extension>
         <com:Extension Category="windows.comServer">
