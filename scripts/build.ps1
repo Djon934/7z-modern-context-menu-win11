@@ -106,7 +106,6 @@ if ($env:SIGN_PFX_BASE64) {
 # --- 5. Manifest
 $tpl  = Get-Content "$root\packaging\AppxManifest.xml.template" -Raw -Encoding UTF8
 $tpl  = $tpl.Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4)
-[IO.File]::WriteAllText("$stage\AppxManifest.xml", $tpl, (New-Object Text.UTF8Encoding $false))
 
 # --- 6. Pack and sign
 function Find-SdkTool($name) {
@@ -118,8 +117,24 @@ function Find-SdkTool($name) {
 $makeappx = Find-SdkTool 'makeappx.exe'
 $signtool = Find-SdkTool 'signtool.exe'
 $msix = Join-Path $dist 'ModernMenu7z.msix'
-& $makeappx pack /d $stage /p $msix /nv /o
-Assert-Ok 'makeappx'
+
+# Drives (C:, D:...) use item type "Drive". Windows documentation is unclear whether it is accepted,
+# so try with it first and fall back to files + folders only.
+$driveXml = @'
+            <desktop5:ItemType Type="Drive">
+              <desktop5:Verb Id="SevenZipMenuDrives" Clsid="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" />
+            </desktop5:ItemType>
+'@
+$packed = $false
+foreach ($variant in @(@{ Name = 'files+folders+drives'; Xml = $driveXml }, @{ Name = 'files+folders'; Xml = '' })) {
+    Write-Host "=== Trying manifest variant: $($variant.Name) ==="
+    $m = $tpl.Replace('{{EXTRA_ITEMTYPES}}', $variant.Xml)
+    [IO.File]::WriteAllText("$stage\AppxManifest.xml", $m, (New-Object Text.UTF8Encoding $false))
+    & $makeappx pack /d $stage /p $msix /nv /o
+    if ($LASTEXITCODE -eq 0) { Write-Host "=== Manifest variant OK: $($variant.Name) ==="; $packed = $true; break }
+    Write-Host "=== Variant rejected: $($variant.Name) ==="
+}
+if (-not $packed) { throw 'makeappx failed with all manifest variants' }
 & $signtool sign /fd SHA256 /f $pfx /p $pfxPass $msix
 Assert-Ok 'signtool'
 
