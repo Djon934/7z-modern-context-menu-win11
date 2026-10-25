@@ -42,7 +42,9 @@ jobs:
             throw 'Stable release requires the permanent signing certificate (secret SIGN_PFX_BASE64).'
           }
           New-Item -ItemType Directory release | Out-Null
-          Compress-Archive -Path dist/* -DestinationPath "release/ModernMenu7z-$env:VERSION-$env:ARCH.zip"
+          # ARM64 is not tested on real hardware yet, so its archive is marked "beta" in the name
+          $suffix = if ($env:ARCH -eq 'arm64') { 'arm64-beta' } else { $env:ARCH }
+          Compress-Archive -Path dist/* -DestinationPath "release/ModernMenu7z-$env:VERSION-$suffix.zip"
 
       - name: Upload zip for the publish job
         uses: actions/upload-artifact@v7
