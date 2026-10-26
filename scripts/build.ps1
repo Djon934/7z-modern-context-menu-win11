@@ -1,7 +1,8 @@
 # Build: DLL + stub + sparse MSIX package + signing. Run in Windows PowerShell 5.1.
 param(
     [Parameter(Mandatory)][string]$Version,
-    [ValidateSet('x64','arm64')][string]$Arch = 'x64'
+    [ValidateSet('x64','arm64')][string]$Arch = 'x64',
+    [switch]$FullPackage   # also build the experimental full (non-sparse) test package
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -131,23 +132,9 @@ $makeappx = Find-SdkTool 'makeappx.exe'
 $signtool = Find-SdkTool 'signtool.exe'
 $msix = Join-Path $dist 'ModernMenu7z.msix'
 
-# Drives (C:, D:...) use item type "Drive". Windows documentation is unclear whether it is accepted,
-# so try with it first and fall back to files + folders only.
-$driveXml = @'
-            <desktop5:ItemType Type="Drive">
-              <desktop5:Verb Id="SevenZipMenuDrives" Clsid="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" />
-            </desktop5:ItemType>
-'@
-$packed = $false
-foreach ($variant in @(@{ Name = 'files+folders+drives'; Xml = $driveXml }, @{ Name = 'files+folders'; Xml = '' })) {
-    Write-Host "=== Trying manifest variant: $($variant.Name) ==="
-    $m = $tpl.Replace('{{EXTRA_ITEMTYPES}}', $variant.Xml)
-    [IO.File]::WriteAllText("$stage\AppxManifest.xml", $m, (New-Object Text.UTF8Encoding $false))
-    & $makeappx pack /d $stage /p $msix /nv /o
-    if ($LASTEXITCODE -eq 0) { Write-Host "=== Manifest variant OK: $($variant.Name) ==="; $packed = $true; break }
-    Write-Host "=== Variant rejected: $($variant.Name) ==="
-}
-if (-not $packed) { throw 'makeappx failed with all manifest variants' }
+[IO.File]::WriteAllText("$stage\AppxManifest.xml", $tpl, (New-Object Text.UTF8Encoding $false))
+& $makeappx pack /d $stage /p $msix /nv /o
+Assert-Ok 'makeappx'
 & $signtool sign /fd SHA256 /f $pfx /p $pfxPass $msix
 Assert-Ok 'signtool'
 
@@ -158,5 +145,20 @@ New-Item -ItemType Directory -Force "$dist\Assets" | Out-Null
 Copy-Item "$root\assets\StoreLogo.png", "$root\assets\Square44x44Logo.png", "$root\assets\Square150x150Logo.png" "$dist\Assets"
 Copy-Item "$root\installer\*" $dist
 Set-Content -Path "$dist\arch.txt" -Value $Arch -Encoding Ascii
+if ($FullPackage) {
+    Write-Host '=== Building the experimental FULL test package ==='
+    $stageFull = Join-Path $out 'pkgfull'
+    New-Item -ItemType Directory -Force $stageFull, "$stageFull\Assets" | Out-Null
+    Copy-Item "$out\ModernMenu7z.dll", "$out\ModernMenu7z.exe" $stageFull
+    Copy-Item "$root\assets\StoreLogo.png", "$root\assets\Square44x44Logo.png", "$root\assets\Square150x150Logo.png" "$stageFull\Assets"
+    $tplFull = (Get-Content "$root\packaging\AppxManifest.full.xml.template" -Raw -Encoding UTF8).Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4).Replace('{{ARCH}}', $Arch)
+    [IO.File]::WriteAllText("$stageFull\AppxManifest.xml", $tplFull, (New-Object Text.UTF8Encoding $false))
+    $msixFull = Join-Path $dist 'ModernMenu7z-FullPackage-Test.msix'
+    & $makeappx pack /d $stageFull /p $msixFull /nv /o
+    Assert-Ok 'makeappx (full package)'
+    & $signtool sign /fd SHA256 /f $pfx /p $pfxPass $msixFull
+    Assert-Ok 'signtool (full package)'
+    Copy-Item "$root\tools\fullpackage-test\*" $dist
+}
 Remove-Item $pfx -Force
 Get-ChildItem $dist | Format-Table Name, Length
