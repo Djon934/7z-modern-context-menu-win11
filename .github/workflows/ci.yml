@@ -81,3 +81,35 @@ jobs:
           path: setup-out/*.exe
           if-no-files-found: error
           retention-days: 14
+
+  fullpackage-test:
+    name: Full MSIX package (experimental test, x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read VERSION
+        shell: pwsh
+        run: |
+          $v = (Get-Content VERSION).Trim()
+          "VERSION=$v" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Build
+        shell: powershell
+        env:
+          SIGN_PFX_BASE64: ${{ secrets.SIGN_PFX_BASE64 }}
+          SIGN_PFX_PASSWORD: ${{ secrets.SIGN_PFX_PASSWORD }}
+        run: ./scripts/build.ps1 -Version $env:VERSION -Arch x64 -FullPackage
+
+      - name: Upload test package
+        uses: actions/upload-artifact@v7
+        with:
+          name: ModernMenu7z-FullPackageTest-${{ env.VERSION }}
+          path: |
+            dist/ModernMenu7z-FullPackage-Test.msix
+            dist/ModernMenu7z.cer
+            dist/install-fullpackage-test.*
+            dist/remove-fullpackage-test.*
+            dist/README-FULLPACKAGE-TEST.txt
+          if-no-files-found: error
+          retention-days: 14
