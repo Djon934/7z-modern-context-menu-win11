@@ -94,6 +94,18 @@ software signed with the same key too. If you don't want that, build the project
 or remove the certificate after installation: `Win+R → certlm.msc → Trusted People → Certificates`.
 The package keeps working after the certificate is removed from the store.
 
+## Code signing policy
+**Current status.** Releases are signed with the author's own self-signed certificate (`CN=Djon934`, see above). The project does not have a publicly trusted certificate yet, so SmartScreen may show an unknown-publisher warning. The project plans to apply for free open-source code signing from the [SignPath Foundation](https://signpath.org/). SignPath signing is not obtained or used yet. When it is, this section will say: *"Free code signing provided by SignPath.io, certificate by SignPath Foundation"*.
+
+**How releases are built.**
+- Only files built automatically by GitHub Actions from the open source code of this repository (workflow `.github/workflows/release.yml`) are signed. Locally built files are not signed or published.
+- The private key is held only by the author and in repository secrets; it is not in the repository.
+- SHA-256 checksums (`SHA256SUMS.txt`) are published with every release.
+
+**Roles.** Author, reviewer and release approver: [Djon934](https://github.com/Djon934) (the sole maintainer). Two-factor authentication is enabled on GitHub.
+
+**Privacy.** This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it.
+
 ## Troubleshooting
 **The item is not in the main menu?** Open *Settings → Personalization → Context menu → App extensions* and turn on
 "Modern context menu for 7-Zip" (or look inside the *App extensions* submenu).
