@@ -4,6 +4,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versions: [SemVer](http
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-26
+
+### Added
+- **One `ModernMenu7z-<version>-Setup.exe` installer for both x64 and ARM64** (Inno Setup). It picks the right build, supports silent install (`/VERYSILENT`), and adds an uninstall entry to *Settings -> Apps*. The zip archives are still published.
+
 ## [1.1.0] - 2026-10-26
 
 ### Added

@@ -1,11 +1,16 @@
 # Install ModernMenu7z. Run via install.cmd. Administrator rights are required.
+# -Silent: used by the Setup.exe installer (no prompts, no elevation, exit code 1 on error, log in %TEMP%).
+param([switch]$Silent)
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $PSCommandPath
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
+    if ($Silent) { Write-Host 'Administrator rights are required.'; exit 1 }
     Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
     exit
 }
+$failed = $false
+if ($Silent) { try { Start-Transcript -Path (Join-Path $env:TEMP 'ModernMenu7z-install.log') -Force | Out-Null } catch { } }
 try {
     # The package must match the Windows architecture (Explorer loads only native DLLs)
     $osArch  = [string][Runtime.InteropServices.RuntimeInformation]::OSArchitecture
@@ -36,11 +41,17 @@ try {
     Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 2
 
-    Write-Host "3/5 Copying files to $dir ..."
-    New-Item -ItemType Directory -Force $dir | Out-Null
-    Copy-Item (Join-Path $here 'ModernMenu7z.dll') $dir -Force
-    Copy-Item (Join-Path $here 'ModernMenu7z.exe') $dir -Force
-    Copy-Item (Join-Path $here 'Assets') $dir -Recurse -Force
+    # When started by Setup.exe the files are already in place (same folder): nothing to copy
+    $inPlace = ($here.TrimEnd('\') -eq $dir.TrimEnd('\'))
+    if ($inPlace) {
+        Write-Host "3/5 Files are already in $dir"
+    } else {
+        Write-Host "3/5 Copying files to $dir ..."
+        New-Item -ItemType Directory -Force $dir | Out-Null
+        Copy-Item (Join-Path $here 'ModernMenu7z.dll') $dir -Force
+        Copy-Item (Join-Path $here 'ModernMenu7z.exe') $dir -Force
+        Copy-Item (Join-Path $here 'Assets') $dir -Recurse -Force
+    }
     if (Test-Path $legacyDir) { Remove-Item $legacyDir -Recurse -Force -ErrorAction SilentlyContinue }
 
     Write-Host '4/5 Trusting the package signing certificate...'
@@ -53,11 +64,14 @@ try {
     Write-Host 'Done. If the 7-Zip item does not appear, sign out of Windows and sign in again.' -ForegroundColor Green
 }
 catch {
+    $failed = $true
     Write-Host ''
     Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host $_.ScriptStackTrace
 }
 finally {
     if (-not (Get-Process explorer -ErrorAction SilentlyContinue)) { Start-Process explorer.exe }
-    Read-Host 'Press Enter to close'
+    if ($Silent) { try { Stop-Transcript | Out-Null } catch { } }
+    else { Read-Host 'Press Enter to close' }
 }
+if ($failed) { exit 1 }

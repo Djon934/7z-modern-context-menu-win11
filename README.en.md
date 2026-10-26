@@ -47,6 +47,16 @@ the item is shown in the main menu (toggle **On**, as below) or inside the *App 
 - In 7-Zip options, the checkbox **"Integrate 7-Zip to shell context menu"** must stay enabled. The extension uses it.
 
 ## Installation
+
+### Option 1: installer (recommended)
+1. Open the [Releases](../../releases) page and download `ModernMenu7z-<version>-Setup.exe`. One file for both x64 and ARM64: it picks the right build itself.
+2. Run it and confirm the administrator prompt (UAC). The taskbar may blink for a moment: Explorer restarts.
+3. Right-click any file or folder. The **7-Zip** item appears in the new menu.
+
+Silent install: `ModernMenu7z-<version>-Setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART`.
+To remove it: *Settings → Apps → Installed apps*.
+
+### Option 2: zip archive
 1. Open the [Releases](../../releases) page and download `ModernMenu7z-<version>-x64.zip` (most PCs) or `ModernMenu7z-<version>-arm64-beta.zip` (Windows on ARM, beta).
 2. Extract the archive to any folder (don't run files from inside the zip).
 3. Double-click **`install.cmd`** and confirm the administrator prompt (UAC).
@@ -60,7 +70,8 @@ Compare the SHA-256 of the zip with `SHA256SUMS.txt` from the release:
 `certutil -hashfile ModernMenu7z-<version>-x64.zip SHA256`
 
 ## Uninstallation
-Run **`uninstall.cmd`** from the extracted folder.
+If you used the installer: *Settings → Apps → Installed apps → Modern context menu for 7-Zip → Uninstall*.
+If you used the zip: run **`uninstall.cmd`** from the extracted folder.
 
 ## Known limitations
 - **Nested submenus are flattened.** Windows 11 supports only one submenu level in the new menu
