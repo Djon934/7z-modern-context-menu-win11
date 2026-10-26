@@ -46,6 +46,14 @@ jobs:
           $suffix = if ($env:ARCH -eq 'arm64') { 'arm64-beta' } else { $env:ARCH }
           Compress-Archive -Path dist/* -DestinationPath "release/ModernMenu7z-$env:VERSION-$suffix.zip"
 
+      - name: Upload dist for the installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Upload zip for the publish job
         uses: actions/upload-artifact@v7
         with:
@@ -82,12 +90,30 @@ jobs:
           path: release
           merge-multiple: true
 
+      - name: Download x64 dist
+        uses: actions/download-artifact@v8
+        with:
+          name: dist-x64
+          path: payload/x64
+
+      - name: Download arm64 dist
+        uses: actions/download-artifact@v8
+        with:
+          name: dist-arm64
+          path: payload/arm64
+
+      - name: Build Setup.exe
+        shell: powershell
+        run: ./scripts/build-installer.ps1 -Version $env:VERSION -PayloadDir "$PWD\payload" -OutDir "$PWD\release"
+
       - name: Checksums
         shell: pwsh
         run: |
-          $zips = Get-ChildItem release -Filter *.zip | Sort-Object Name
+          $zips = Get-ChildItem release -Filter *.zip
           if ($zips.Count -ne 2) { throw "Expected 2 zip files (x64 and arm64), found $($zips.Count)" }
-          $zips | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } |
+          $setup = Get-ChildItem release -Filter *-Setup.exe
+          if ($setup.Count -ne 1) { throw "Expected 1 Setup.exe, found $($setup.Count)" }
+          Get-ChildItem release -File | Sort-Object Name | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } |
             Set-Content release/SHA256SUMS.txt
           Get-Content release/SHA256SUMS.txt
 
