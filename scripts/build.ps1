@@ -119,7 +119,7 @@ if ($env:SIGN_PFX_BASE64) {
 
 # --- 5. Manifest
 $tpl  = Get-Content "$root\packaging\AppxManifest.xml.template" -Raw -Encoding UTF8
-$tpl  = $tpl.Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4).Replace('{{ARCH}}', $Arch)
+$tpl  = $tpl.Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4).Replace('{{ARCH}}', $Arch).Replace('{{EXTRA_ITEMTYPES}}', '')
 
 # --- 6. Pack and sign
 function Find-SdkTool($name) {
@@ -151,7 +151,7 @@ if ($FullPackage) {
     New-Item -ItemType Directory -Force $stageFull, "$stageFull\Assets" | Out-Null
     Copy-Item "$out\ModernMenu7z.dll", "$out\ModernMenu7z.exe" $stageFull
     Copy-Item "$root\assets\StoreLogo.png", "$root\assets\Square44x44Logo.png", "$root\assets\Square150x150Logo.png" "$stageFull\Assets"
-    $tplFull = (Get-Content "$root\packaging\AppxManifest.full.xml.template" -Raw -Encoding UTF8).Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4).Replace('{{ARCH}}', $Arch)
+    $tplFull = (Get-Content "$root\packaging\AppxManifest.full.xml.template" -Raw -Encoding UTF8).Replace('{{PUBLISHER}}', $publisher).Replace('{{VERSION4}}', $ver4).Replace('{{ARCH}}', $Arch).Replace('{{EXTRA_ITEMTYPES}}', '')
     [IO.File]::WriteAllText("$stageFull\AppxManifest.xml", $tplFull, (New-Object Text.UTF8Encoding $false))
     $msixFull = Join-Path $dist 'ModernMenu7z-FullPackage-Test.msix'
     & $makeappx pack /d $stageFull /p $msixFull /nv /o
