@@ -44,3 +44,40 @@ jobs:
           path: dist/*
           if-no-files-found: error
           retention-days: 14
+
+  installer:
+    name: Setup.exe (x64 + arm64)
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read VERSION
+        shell: pwsh
+        run: |
+          $v = (Get-Content VERSION).Trim()
+          "VERSION=$v" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Download x64 build
+        uses: actions/download-artifact@v8
+        with:
+          name: ModernMenu7z-${{ env.VERSION }}-x64
+          path: payload/x64
+
+      - name: Download arm64 build
+        uses: actions/download-artifact@v8
+        with:
+          name: ModernMenu7z-${{ env.VERSION }}-arm64
+          path: payload/arm64
+
+      - name: Build Setup.exe
+        shell: powershell
+        run: ./scripts/build-installer.ps1 -Version $env:VERSION -PayloadDir "$PWD\payload" -OutDir "$PWD\setup-out"
+
+      - name: Upload Setup.exe
+        uses: actions/upload-artifact@v7
+        with:
+          name: ModernMenu7z-Setup-${{ env.VERSION }}
+          path: setup-out/*.exe
+          if-no-files-found: error
+          retention-days: 14
