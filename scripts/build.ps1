@@ -80,7 +80,7 @@ try {
     & cl /nologo /std:c++17 /EHsc /O2 /MT /GS /W3 /DUNICODE /D_UNICODE /LD "$root\src\dllmain.cpp" `
         /Fe:ModernMenu7z.dll /link "/DEF:$root\src\exports.def" /DYNAMICBASE /NXCOMPAT /GUARD:CF dll.res
     Assert-Ok 'DLL compile'
-    & cl /nologo /O1 /MT "$root\src\stub.cpp" /Fe:ModernMenu7z.exe /link exe.res
+    & cl /nologo /O1 /MT /DUNICODE /D_UNICODE "$root\src\stub.cpp" /Fe:ModernMenu7z.exe /link /SUBSYSTEM:WINDOWS user32.lib exe.res
     Assert-Ok 'Stub compile'
     # Make sure the binaries really are for the requested architecture
     $want = if ($Arch -eq 'arm64') { 'ARM64' } else { 'x64' }

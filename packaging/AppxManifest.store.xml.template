@@ -38,8 +38,7 @@
     <Application Id="App"
                  Executable="ModernMenu7z.exe"
                  EntryPoint="Windows.FullTrustApplication">
-      <uap:VisualElements AppListEntry="none"
-                          DisplayName="Context Menu for 7-Zip (unofficial)"
+      <uap:VisualElements DisplayName="Context Menu for 7-Zip (unofficial)"
                           Description="Shows the 7-Zip menu in the new Windows 11 context menu. Requires 7-Zip. Unofficial."
                           BackgroundColor="transparent"
                           Square150x150Logo="Assets\Square150x150Logo.png"

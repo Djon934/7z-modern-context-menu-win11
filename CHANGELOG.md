@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versions: [SemVer](http
 
 ## [Unreleased]
 
+### Changed
+- The launcher stub (`ModernMenu7z.exe`) now shows a short information message if started (required for a Microsoft Store package: apps without a launchable entry are not allowed).
+
 ## [1.2.0] - 2026-10-26
 
 ### Added

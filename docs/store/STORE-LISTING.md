@@ -38,7 +38,7 @@ First Microsoft Store release. Shows the 7-Zip menu in the new Windows 11 contex
 7-Zip; context menu; right click; archive; zip; Windows 11 menu
 
 ### Notes for certification (max 2000 characters)
-This app has no window and no Start menu entry. It adds one item to the Windows 11 File Explorer context menu (windows.fileExplorerContextMenus extension, IExplorerCommand).
+The app has no main window: launching it from the Start menu only shows an information message. Its function is to add one item to the Windows 11 File Explorer context menu (windows.fileExplorerContextMenus extension, IExplorerCommand).
 The item shows the menu of the 7-Zip shell extension that is already installed on the computer. 7-Zip is a separate free program; the app does nothing without it.
 HOW TO TEST: 1) Install 7-Zip x64 from https://www.7-zip.org/ (keep "Integrate 7-Zip to shell context menu" on, it is the default). 2) Install this app. 3) In File Explorer right-click any file or folder: a "7-Zip" item appears in the new (short) context menu. Click it to see the 7-Zip commands, for example "Add to archive".
 WHY runFullTrust: the app loads the classic Win32 COM shell extension of 7-Zip (a native DLL outside the package) inside its COM surrogate and calls IContextMenu. This cannot be done from an AppContainer app.
