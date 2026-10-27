@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Microsoft Store package (full, not sparse): binaries are inside the package. Identity values come from Partner Center. -->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+  xmlns:desktop5="http://schemas.microsoft.com/appx/manifest/desktop/windows10/5"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  IgnorableNamespaces="uap uap10 rescap desktop4 desktop5 com">
+
+  <Identity Name="Djon934.ContextMenufor7-Zipunofficial"
+            Publisher="CN=FF38FB80-72A5-48DA-88F3-BAD0DF4F2F20"
+            Version="{{VERSION4}}"
+            ProcessorArchitecture="{{ARCH}}" />
+
+  <Properties>
+    <DisplayName>Context Menu for 7-Zip (unofficial)</DisplayName>
+    <PublisherDisplayName>Djon934</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Resources>
+    <Resource Language="en-us" />
+    <Resource Language="ru-ru" />
+  </Resources>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.22000.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+
+  <Applications>
+    <Application Id="App"
+                 Executable="ModernMenu7z.exe"
+                 EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements AppListEntry="none"
+                          DisplayName="Context Menu for 7-Zip (unofficial)"
+                          Description="Shows the 7-Zip menu in the new Windows 11 context menu. Requires 7-Zip. Unofficial."
+                          BackgroundColor="transparent"
+                          Square150x150Logo="Assets\Square150x150Logo.png"
+                          Square44x44Logo="Assets\Square44x44Logo.png" />
+      <Extensions>
+        <desktop4:Extension Category="windows.fileExplorerContextMenus">
+          <desktop4:FileExplorerContextMenus>
+            <desktop5:ItemType Type="*">
+              <desktop5:Verb Id="SevenZipMenuFiles" Clsid="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" />
+            </desktop5:ItemType>
+            <desktop5:ItemType Type="Directory">
+              <desktop5:Verb Id="SevenZipMenuFolders" Clsid="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" />
+            </desktop5:ItemType>
+          </desktop4:FileExplorerContextMenus>
+        </desktop4:Extension>
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:SurrogateServer DisplayName="Context Menu for 7-Zip (unofficial)">
+              <com:Class Id="5B7E2C41-9A3D-4F68-B1E7-0C4A8D6F2E93" Path="ModernMenu7z.dll" ThreadingModel="STA" />
+            </com:SurrogateServer>
+          </com:ComServer>
+        </com:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+</Package>

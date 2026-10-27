@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory)][string]$Version,
     [ValidateSet('x64','arm64')][string]$Arch = 'x64',
-    [switch]$FullPackage   # also build the experimental full (non-sparse) test package
+    [switch]$FullPackage,   # also build the experimental full (non-sparse) test package
+    [switch]$StorePackage   # also build the unsigned package for Microsoft Store (Partner Center signs it)
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -159,6 +160,20 @@ if ($FullPackage) {
     & $signtool sign /fd SHA256 /f $pfx /p $pfxPass $msixFull
     Assert-Ok 'signtool (full package)'
     Copy-Item "$root\tools\fullpackage-test\*" $dist
+}
+if ($StorePackage) {
+    Write-Host '=== Building the Microsoft Store package (unsigned) ==='
+    $stageStore = Join-Path $out 'pkgstore'
+    New-Item -ItemType Directory -Force $stageStore, "$stageStore\Assets" | Out-Null
+    Copy-Item "$out\ModernMenu7z.dll", "$out\ModernMenu7z.exe" $stageStore
+    Copy-Item "$root\assets\StoreLogo.png", "$root\assets\Square44x44Logo.png", "$root\assets\Square150x150Logo.png" "$stageStore\Assets"
+    # Store reserves the 4th number of the version: it must be 0
+    $ver3 = ($Version -replace '-.*$', '') + '.0'
+    $tplStore = (Get-Content "$root\packaging\AppxManifest.store.xml.template" -Raw -Encoding UTF8).Replace('{{VERSION4}}', $ver3).Replace('{{ARCH}}', $Arch)
+    [IO.File]::WriteAllText("$stageStore\AppxManifest.xml", $tplStore, (New-Object Text.UTF8Encoding $false))
+    $msixStore = Join-Path $dist "ModernMenu7z-Store-$Version-$Arch.msix"
+    & $makeappx pack /d $stageStore /p $msixStore /o
+    Assert-Ok 'makeappx (Store package)'
 }
 Remove-Item $pfx -Force
 Get-ChildItem $dist | Format-Table Name, Length
